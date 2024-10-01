@@ -1,28 +1,17 @@
-# Function to calculate and plot total distance per team for a specific play
-plot_total_distance_per_team <- function(game_id, play_id, data) {
-  # Subset data for the specific game and play
-  play_data <- subset(data, gameId == game_id & playId == play_id & !is.na(nflId))
-  
-  if (nrow(play_data) == 0) {
-    warning(paste("No data found for game", game_id, "and play", play_id))
-    return(NULL)
-  }
-  
-  # Identify teams
-  teams <- unique(play_data$club)
-  
-  # Initialize a vector to store total distance per team
-  total_distance <- numeric(length(teams))
+plot_total_distance_per_team <- function(game_id, data) {
+  game_data <- subset(data, gameId == game_id & !is.na(nflId))
+  teams <- unique(game_data$club)
+
+  total_distance <- numeric(2)
   names(total_distance) <- teams
-  
-  # Calculate distance for each player and sum by team
+
   for (team in teams) {
-    team_players <- unique(play_data$nflId[play_data$club == team])
+    team_players <- unique(game_data$nflId[game_data$club == team])
     team_distance <- 0
+    
     for (player in team_players) {
-      player_data <- subset(play_data, nflId == player)
-      player_data <- player_data[order(player_data$frameId), ]
-      # Calculate distance between consecutive frames
+      player_data <- subset(game_data, nflId == player)
+      player_data <- player_data[order(player_data$playId, player_data$frameId), ]
       if (nrow(player_data) > 1) {
         dx <- diff(player_data$x)
         dy <- diff(player_data$y)
@@ -32,21 +21,22 @@ plot_total_distance_per_team <- function(game_id, play_id, data) {
     }
     total_distance[team] <- team_distance
   }
+  total_yards <- sum(total_distance)
+  percentages <- (total_distance / total_yards) * 100
   
-  # Plot the total distances
-  barplot(total_distance, 
-          col = rainbow(length(teams)), 
-          ylim = c(0, max(total_distance) * 1.1),
-          main = paste("Total Distance Covered by Each Team in Game", game_id, "Play", play_id),
-          ylab = "Total Distance (yards)",
-          las = 2)  # Rotate x-axis labels for readability
-  
-  # Add numeric labels on top of the bars
-  text(x = seq_along(total_distance), 
-       y = total_distance, 
-       label = round(total_distance, 1), 
-       pos = 3, cex = 0.8)
+  labels <- paste0(names(total_distance), "\n",
+                   round(total_distance, 0), " yards\n",
+                   round(percentages, 1), "%")
+
+  pie_colors <- terrain.colors(2)
+  pie(
+    x = total_distance,
+    labels = labels,
+    col = pie_colors,
+    main = paste("Total Distance Covered by Each Team, GameID: ", game_id),
+    border = "white",
+    cex = 0.8
+  )
 }
 
-# Example usage
-plot_total_distance_per_team(2022092508, 2939, data)
+plot_total_distance_per_team(2022091106, data)
