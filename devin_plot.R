@@ -22,8 +22,42 @@ tracking_week_9 <- read.csv('NFL/tracking_week_9.csv')
 
 data <- read.csv('nfl_data.csv')
 
+hist(plays$expectedPointsAdded, 
+     main = "Expected Points Added for a Play",
+     xlab = "Expected Points Added",
+     col = "lightblue",
+     xlim = c(-10, 10),
+     border = "black",
+     breaks = 20,
+     las = 1
+     )
 
 head(data)
+
+range(plays$expectedPointsAdded)
+
+name = "Micah Parsons"
+player_name <- data[data$displayName == name, ]
+play_id <- 3183
+player_play <- player_name[player_name$playId == play_id, ]
+player_play <- 
+
+plot(player_play$frameId, player_play$s, type = "l",
+     main = paste(name, "Play Speed Over Time"), 
+     xlab = "Time Since Start of Play (Tenths of a Second)",
+     ylab = "Speed (yards/second)", 
+     col = "blue",           
+     lwd = 2,               
+     cex.main = 1.5,         
+     cex.lab = 1.2,         
+     cex.axis = 1.1,         
+     font.main = 2,          
+     las = 1,                
+     bty = "l")              
+
+
+
+
 
 
 player_speed <- function(name){
