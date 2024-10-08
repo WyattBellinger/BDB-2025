@@ -1,0 +1,19 @@
+library("ggplot2")
+library("treemapify")
+
+
+college_counts <- as.data.frame(table(players$collegeName))
+colnames(college_counts) <- c("College", "Count")
+
+#Colleges with at least 5 NFL players
+big_colleges <- subset(college_counts, Count >= 5)
+ggplot(big_colleges, aes(area = Count, fill = College, label = College)) +
+  geom_treemap() + geom_treemap_text(color = "white", place = "center", grow = TRUE, reflow = TRUE) +
+  theme(legend.position = "none") + labs(title = "Treemap of College Attendance")
+
+#Score Differential Density Plot that doesn't make sense
+home_team_point_differential <- games$homeFinalScore - games$visitorFinalScore
+data <- data.frame(value = home_team_point_differential)
+ggplot(data, aes(x = value)) +
+geom_density(fill = "blue", alpha = 0.5) + labs(title = "Point Differential by Home team",
+x = "Point Differential", y = "Density")
