@@ -1,0 +1,24 @@
+#Barplot of Home Team Point Differentials
+
+home_team_point_differential <- games$homeFinalScore - games$visitorFinalScore
+home_team_pd <- data.frame(value = home_team_point_differential)
+
+ggplot(home_team_pd, aes(x = factor(value))) +
+  geom_bar(fill = "blue", alpha = 0.5) + 
+  labs(title = "Point Differential by Home team",
+  x = "Point Differential", y = "Quantity")
+
+#ggplot Barplot of Average EPA by play type
+
+pass <- plays[plays$passResult == "C",]
+run <- plays[plays$passResult == "",]
+scramble <- plays[plays$passResult == "R",]
+
+avgepa_completion <- sum(pass$expectedPointsAdded, na.rm = TRUE)/5634
+avgepa_run <- sum(run$expectedPointsAdded, na.rm = TRUE)/6381
+avgepa_scramble <- sum(scramble$expectedPointsAdded, na.rm = TRUE)/471
+
+play_type_data <- data.frame(play = c("Completion", "Run", "Scramble"),
+avgepa = c(avgepa_completion, avgepa_run, avgepa_scramble))
+ggplot(play_type_data, aes(x = play, y = avgepa)) + geom_bar(stat = "identity", 
+fill = "red") + labs(title = "Average EPA by Play Type", x = "Play Type", y = "Average EPA") + theme_minimal()
