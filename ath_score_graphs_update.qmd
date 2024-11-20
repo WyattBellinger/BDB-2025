@@ -544,12 +544,63 @@ x = "Point Differential", y = "Density")
 This density plot illustrates the point differential for the home team during the first 9 weeks of the NFL season. The plot is smoothed so it means that a higher value is a generally higher value in that area, but not necessarily at that spot. A positive point differential means that the home team won and a negative point differential means that the away team won. A point differential of 0 means that the game ended in a tie. The density value is the amount out of all games that ended in that point differential
 
 
+```{r}
+library(dplyr)
+library(stringr)
+library(ggplot2)
 
-  
+plays <- read.csv("NFL/plays.csv")
+
+plays_defenders <- plays %>%
+  mutate(defenders = str_extract(playDescription, "\\(([A-Za-z\\.\\s;'-]+)\\)\\.?$")) %>%
+    filter(!is.na(defenders)) %>%
+      mutate(
+        defenders = str_replace_all(defenders, "[\\(\\)]", ""),
+        defenders = str_replace_all(defenders, "(\\b[A-Z])\\.", "\\1\\. "),
+      )
+
+defender_list <- strsplit(plays_defenders$defenders, ";\\s*")
+defenders_all <- data.frame(defenders = unlist(defender_list))
+
+defender_counts_full <- defenders_all %>%
+  group_by(defenders) %>%
+    summarise(count = n()) %>%
+      arrange(desc(count))
+defender_counts <- head(defender_counts_full, 10)
+
+ggplot(defender_counts, aes(x = reorder(defenders, count), y = count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Defenders by Number of Impacts",
+    x = "Defender",
+    y = "Number of Impacts"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+
+college_data <- mutate(college_data, transformed_name = str_replace(name, "^(\\w)\\w*\\s(\\w+)$", "\\1. \\2."))
+
+defender_counts_full <- left_join(defender_counts_full, select(college_data, final_score, transformed_name), by = join_by(defenders == transformed_name))
+
+ggplot(defender_counts_full, aes(x = count, y = final_score)) +
+  geom_point(alpha = 0.6, color = "darkblue", size = 3) + # Base scatter points
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", alpha = 0.4) + # Density overlay
+  scale_fill_viridis_c(option = "C") + # Gradient color scale
+  labs(
+    title = "Impact Plays vs Athletic Score for NFL Defensive Players",
+    x = "Impact Plays",
+    y = "Athletic Score",
+    fill = "Density"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "right")
 
 
-
-
+```
 
 
 
