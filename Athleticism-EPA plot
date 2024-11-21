@@ -1,0 +1,17 @@
+#Athleticism vs Offensive EPA Scatterplot
+
+split_plays_data <- split(plays, plays$ballCarrierDisplayName)
+epa_data <- lapply(split_plays_data, function(subset_df){mean(subset_df$expectedPointsAdded)
+})
+
+split_college_data <- split(college_data, college_data$name)
+athleticism_data <- lapply(split_college_data, function(subset_df){mean(subset_df$Athleticism_Score)})
+
+epa_df <- data.frame(name = names(epa_data), list_value = unlist(epa_data))
+athleticism_df <- data.frame(name = names(athleticism_data), list_value = unlist(athleticism_data))
+
+merged_df <- merge(epa_df, athleticism_df, by = "name")
+
+ggplot(merged_df, aes(x = list_value.y, y = list_value.x)) +
+  geom_point() + geom_smooth(method = "lm", col = "blue") + labs(title = "Scatter Plot of Athleticism vs Average Offensive EPA Scores by Player",
+                      y = "Average Offensive EPA by Player", x = "Athleticism Score") + theme_minimal()
