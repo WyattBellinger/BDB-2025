@@ -338,7 +338,7 @@ college_data['Athleticism_Score']<- college_data$heightIN_score+ college_data$we
 
 
 player_radar_chart <- function(player){
-  player_data<-college_data[college_data$name=="Tyreek Hill",13:19]
+  player_data<-college_data[college_data$name==player,13:19]
   total_score <- round(college_data[college_data$name==player,20][[1]], digits=2)
  
   ggradar(player_data, grid.min=-5, grid.max=5, grid.mid=0, grid.label.size = 3, 
@@ -485,12 +485,16 @@ player_radar_chart_pos_adj("Tyreek Hill")
 ::: {.column width="50%"}
 ```{r}
 player_radar_chart("Tyreek Hill")
+player_radar_chart("Trent Williams")
 ```
 :::
 :::{.column width="50%"}
 ```{r}
 player_radar_chart_pos_adj("Tyreek Hill")
+player_radar_chart_pos_adj("Trent Williams")
 ```
+
+
 :::
 :::
 ## Issue Resolved {.auto-animate}
@@ -603,6 +607,30 @@ ggplot(defender_counts, aes(x = reorder(defenders, count), y = count)) +
 ```
 
 # Impact of Athleticism on Offense
+
+##Athleticism vs Offensive EPA Scatterplot
+
+```{r}
+
+
+split_plays_data <- split(plays, plays$ballCarrierDisplayName)
+epa_data <- lapply(split_plays_data, function(subset_df){mean(subset_df$expectedPointsAdded)
+})
+
+split_college_data <- split(college_data, college_data$name)
+athleticism_data <- lapply(split_college_data, function(subset_df){mean(subset_df$Athleticism_Score)})
+
+epa_df <- data.frame(name = names(epa_data), list_value = unlist(epa_data))
+athleticism_df <- data.frame(name = names(athleticism_data), list_value = unlist(athleticism_data))
+
+merged_df <- merge(epa_df, athleticism_df, by = "name")
+
+ggplot(merged_df, aes(x = list_value.y, y = list_value.x)) +
+  geom_point() + geom_smooth(method = "lm", col = "blue") + labs(title = "Scatter Plot of Athleticism vs Average Offensive EPA Scores by Player",
+                      y = "Average Offensive EPA by Player", x = "Athleticism Score") + theme_minimal()
+
+```
+
 
 ## Source
 This presentation is a subset of the demo created by quarto, plus other material.
