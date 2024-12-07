@@ -195,8 +195,8 @@ by_age <- by_age[!is.na(by_age$mean_speed),]
 {
 par(mar = c(5, 4, 4, 2) + 0.1)
 barplot(by_age$mean_speed, ylim=c(0,10), xlim=c(0,23), ylab='Average Max Speed', xlab='Age', main='Average Max Speed of Players by Age')
-text(x=seq(.7, 23, 1.2), y=c(.3), labels=by_age$age)
-text(x=seq(.7, 23, 1.2), y=(by_age$mean_speed-.5), labels=round(by_age$mean_speed,1))
+text(x=seq(.7, 23, 1.2), y=c(.3), labels=by_age$age, cex=0.8, srt=45)
+text(x=seq(.7, 23, 1.2), y=(by_age$mean_speed-.5), labels=round(by_age$mean_speed,1), cex=0.8, srt=45)
 }
 
 ```
@@ -318,8 +318,8 @@ plot(player_play$frameId, player_play$s, type = "l",
 
 ```{r, echo=FALSE}
 {barplot(by_age$mean_acceleration, ylim=c(0,13), xlim=c(0,23), ylab='Average Max Acceleration', xlab='Age', main='Average Max Acceleration of Players by Age')
-text(x=seq(.7, 23, 1.2), y=c(.3), labels=by_age$age)
-text(x=seq(.7, 23, 1.2), y=(by_age$mean_acceleration-.5), labels=round(by_age$mean_acceleration,1))}
+text(x=seq(.7, 23, 1.2), y=c(.3), labels=by_age$age, cex=0.8, srt=45)
+text(x=seq(.7, 23, 1.2), y=(by_age$mean_acceleration-.5, cex=0.8, srt=45), labels=round(by_age$mean_acceleration,1))}
 ```
 
 # Athleticism Score {background="#6B6B6B"}
@@ -636,6 +636,9 @@ ggplot(defender_counts_full, aes(x = count, y = final_score)) +
 
 
 ```
+This density plot illustrates the athleticism score of defensive players and the number of impacts they had throughout the first 9 weeks of the season. This plot builds on the text mining metric we created for defensive player impact. As we can see, the majority of impacts are centered around 2-3, which makes sense since most players do not have the opportunity to play many snaps or only get into a few games. We can see a very slight positive correlation between the athletic score and the number of impact plays, which matches our intuition since you would expect more athletic players to make more tackles. 
+
+
 # Impact of Athleticism on Offense {background="#6B6B6B"}
 
 ## Athleticism vs Offensive EPA Scatterplot
