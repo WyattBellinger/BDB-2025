@@ -12,6 +12,8 @@ geometry: margin=1in
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
+## Introduction
+
   Our data set is player tracking data from the first nine weeks of the 2023-2024 NFL season. This is a subset of the full player tracking data. This data set has data for each player on the field for every 10th of a second. Some plays, for example, scrambles and completions, only include five frames before and after the action. Some of the main columns are gameID, which is a unique ID for each game, playID, which is a unique ID for each play, and nflID, which is a unique ID for each player. In addition, the set has x and y, which are the positions of the player on the field in the long and short way, respectively. S and a, which are the speed and acceleration of the player in yards per second and yards per second squared, respectively. We also have supplementary data which includes extra information about the players, overall game data, play by play data, and specific information on every tackle.
 
 
@@ -82,7 +84,7 @@ by_age <- college_data %>% group_by(age) %>%
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 res <- dbSendQuery(conn = dcon, "
 SELECT  *
 FROM all_weeks_data 
@@ -163,13 +165,15 @@ by_age <- by_age[!is.na(by_age$mean_speed),]
 
 
 ```
+## Athletic Traits Analysis
 
+# Speed
 Our initial goal with the data was to investigate NFL player athleticism and how it changed over time. To begin that exploration we dived into the flashiest trait a player can have, speed. One of the most eye catching traits on the football field was speed, so we wanted to look at how this athletic trait was affect by player age.
 
 
 The below barplot displays the change in speed as a player ages. Across the x-axis are the ages in years of players ranging from 23 to 45, while in the y axis is speed. Speed is represented by the average max speed achieved by players in that age group.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 
 
 {
@@ -183,7 +187,7 @@ text(x=seq(.7, 23, 1.2), y=(by_age$mean_speed-.5), labels=round(by_age$mean_spee
 
 The speed plot seemed to show a pretty solid correlation that as players age, they become slower. The trend is very distinct between the ages of around 23-31, while more variance is shown in later ages. This variance makes sense as the vast majority of players are between the ages of 23-31, so the smaller sample size for larger ages explains this variation.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 
 speed_vs_age <- lm(avg_speed ~ age, college_data)
 
@@ -210,7 +214,7 @@ grid(col = "gray80", lty = 1)
   Inspired by the above bar chart, we ran a linear regression on the speed and age data. The blue line is the resulting line of best fit, with the transparent red area being the confidence interval of the line. The data showed a negative correlation which was supported by both its correlation coefficient of -.1995, and its pvalue of 3.21e-12 which suggests a statistically significant relationship. This confirmed our earlier suspicions that players slow down as they age.
 
   Following our brief exploratory analysis of speed and age we wanted to see if speed favored any particular positions. 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 res <- dbSendQuery(conn = dcon, "
 SELECT  *
 FROM players 
@@ -231,7 +235,8 @@ ggplot(max_speeds_with_positions, aes(x = position, y = s)) +
 
   The following violin plot allows one to see the distribution of max speed (a numerical variable) among multiple positions (categorical groups). As is shown, some positions clearly have faster players on average which is shown by their densities being located higher in the violin plot. For example, the majority of cornerbacks are shown to have max speeds between 7.5 yards/s and 11 yards/s, while the majority of guards have max speeds between 5 yards/s and 8 yards/s. Also, it allows one to see which positions have a greater range of max speeds among players. For example, the violin plot for middle linebacker is much more dispersed than the one for nose tackle, showing how the range of max speeds among middle linebackers is greater than that of nose tackles. This graph is useful because it allows one to easily determine which positions have faster players on average, as well as the variations of max speed in a singular position.
 
-```{r, echo=FALSE}
+# Acceleration
+```{r, echo=FALSE, fig.align="center"}
 player_speed <- function(name){
   
   if (!(name %in% data$displayName)){
@@ -289,16 +294,18 @@ plot(player_play$frameId, player_play$s, type = "l",
 
   This plot inspired us to look at acceleration as it showed how it is not just speed that is important, but also the ability to modulate between speeds and directions quickly to respond to the current gamestate.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 {barplot(by_age$mean_acceleration, ylim=c(0,13), xlim=c(0,23), ylab='Average Max Acceleration', xlab='Age', main='Average Max Acceleration of Players by Age')
 text(x=seq(.7, 23, 1.2), y=c(.3), labels=by_age$age)
 text(x=seq(.7, 23, 1.2), y=(by_age$mean_acceleration-.5), labels=round(by_age$mean_acceleration,1))}
 ```
   Our initial research into acceleration was a barplot similar to the one we had done for speed. The acceleration plot showed a much more stable trend, looking like acceleration stays constant through around age 32 before showing a pretty steady decrease between 33 and 36. The dearth of players age 36+ explains the more wild behaviour of the data past that point. The stability of the plot led us to believe that in general age has less of an impact on acceleration when compared to speed.
 
+# Weight 
+
   Our final investigation into base athletic traits was weight. We wanted to explore weight as it is our closest approximation to strength assuming that in general increased weight on professional athletes would be muscle mass. Further, for weight we only looked at its variance under position as we believed that it would be much more reliant on position than the other athletic traits.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 players$weight <- as.numeric(players$weight)
 ggplot(players) +
   aes(x = reorder(position, weight, median), y = weight) +
@@ -309,9 +316,10 @@ ggplot(players) +
 ```
   The following box plot allows one to see the distribution of weight (a numerical variable) among multiple positions (categorical groups). The boxes are organized in order of increasing median weight, with positions that have a higher median weight being located towards the right of the chart. As is shown, some positions clearly have heavier players on averages. For example, the majority of nose tackles fall between roughly 310 lbs (1st q) and 340 lbs (3rd q), while the majority of cornerbacks fall between roughly 185 lbs (1st 1) and 200 lbs (3rd q). Also, it allows one to see which positions have a greater range of weights among players. For example, the boxplot for outside linebackers shows an interquartile range of around 50 pounds, while the box plots for quarterbacks was only around 10 pounds. This graph is useful because it allows one to easily determine which positions have heavier players on average, as well as the variations of weight in a singular position.
 
+## Athleticism Score Development
 
   Upon the conclusion of our investigation of 3 basic athletic traits provided in the data, we wanted to evolve our methodology to attempt to capture NFL player athleticism as a whole through the creation of an athleticism score.
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 
 
 z_score <- function(column){
@@ -353,7 +361,7 @@ player_radar_chart("Tyreek Hill")
 
 To do so we implemented a rudimentary athleticism score. This score is created by taking the 6 athletic traits provided in the data (height, weight, avg acceleration, avg speed, max speed, max acceleration) and creating z-scores for each, with the z-score being the player's score. To create the total athleticism score the scores for each individual trait was summed. We decided on this as all else equal, improving one of these traits meant an increase in athleticism. This is because if you are ten pounds heavier but can run the same speed as someone else, you are relatively more athletic. To plot this data we used radar charts where each point on the circle is the player score, and the blue dotted line is the average for each score. This allows a clear way to see above and below average traits by looking at the point in reference to the average marking. On the plot we also added the total athleticism score to further contextualize the player.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 
 grouppos <- function(df){
   unique_items<-unique(df$position)
@@ -406,7 +414,7 @@ ggplot(position_data, aes(x = reorder(position, athleticism_score), y = athletic
 
 Because our creation of athleticism score was done ignoring position, we wanted to see how the score would look across various positions. We assumed that in particular offensive line positions would be disadvantaged as in game they have are not running or accelerating at full speed, hurting their scores their, and our score does not directly factor in traits like strength where they would have a large advantage. Through a differential plot we confirmed our hypothesis as the bottom 4 positions by athleticism score were linemen. Outside of DB, which had very few players, the rest of the positions made sense as they are generally above average in height and weight for the NFL and would have opportunities to sprint frequently, enabling a good showing in our athleticism score. This made us realize that our initial methodology was likely flawed as in general the athleticism across positions should be relatively equal, meaning that the average for each position should be around 0. To fix this we recreated our process but based the z-scores on position so each player could be more fairly evaluated.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 z_score_by_position <- function(column, pos){
   scoring_data <- college_data %>% filter(position==pos)
   col_mean <- mean(scoring_data[[column]], na.rm=TRUE)
@@ -474,15 +482,15 @@ player_radar_chart_pos_adj("Tyreek Hill")
 ```
 
 Above is the same radar plot but with our adjusted athleticism score. This chart was promising for us as it seemed to visually maintain the shape of the non-adjusted plot. This meant that our new way of scoring maintained the previous relationships it discovered.
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 player_radar_chart("Tristan Wirfs")
 ```
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 player_radar_chart_pos_adj("Tristan Wirfs")
 ```
 Further, when looking at players at formerly disadvantaged positions likes offensive tackle, we found significant improvement of some of their scores, showing that we were better capturing their contributions in context. For example, Tristan Wirfs total score improved by about a point and a half once adjusting for his position.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 college_data$final_score <- NA
 for (i in 1:nrow(college_data)) {
   posit <- college_data$position[i]  
@@ -504,9 +512,11 @@ ggplot(position_data_adj, aes(x = reorder(position, athleticism_score), y = athl
 ```
 This plot may look blank, but that is actually a great thing. That indicates that we were successful in creating a way to score athleticism in a fair manner that less penalized positions that due to the data did not have a great way to display their traits as discussed above.
 
+## Athleticism and Age
+
 With our new athleticism metric, we wanted to explore its relationship to age, much like we had done for speed. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 by_age <- college_data %>% group_by(age) %>% 
   summarise(ath_score = mean(final_score, na.rm=TRUE)) %>%
   arrange(age) %>% filter(!is.na(age))
@@ -525,7 +535,7 @@ text(x=seq(.7, 23, 1.2), y=ifelse(by_age$ath_score>0,(by_age$ath_score+1), by_ag
 }
 ```
 This plot generally confirmed that as players age, athleticism wanes. If athleticism were evenly distributed we would expect that each ages would be aproximately 0. But, the majority of players are between the ages of 23-30 and those average to about 0 while past thirty athleticism is consistently very low.
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 ath_vs_age <- lm(final_score ~ age, college_data)
 
 x_seq <- seq(5, 50, length.out = 200)  
@@ -548,9 +558,12 @@ grid(col = "gray80", lty = 1)
 ```
 This plot confirmed our suspicions as it displays a statistically significant negative correlation between age and athleticism. 
 
+## Athleticism and Team Success
+
   With our newly created athleticism score we wanted to transition from our basic initial question of how player athleticism changes as they age onto how player and team athleticism impacts team success.
   
-```{r, echo=FALSE}
+# Defense
+```{r, echo=FALSE, fig.align="center"}
 res <- dbSendQuery(conn = dcon, "
 SELECT  *
 FROM plays 
@@ -587,7 +600,7 @@ ggplot(defender_counts, aes(x = reorder(defenders, count), y = count)) +
 ```
 Starting on the defensive side of the ball, qe wanted to find out if defensive impact players correlated to athleticism. To start that analysis we used text mining to get the impactful defensive players from the play description. This enabled us to find the most impactful defensive players, plotted above. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 college_data <- mutate(college_data, transformed_name = str_replace(name, "^(\\w)\\w*\\s(\\w+)$", "\\1. \\2."))
 
 defender_counts_full <- left_join(defender_counts_full, select(college_data, final_score, transformed_name), by = join_by(defenders == transformed_name))
@@ -608,6 +621,7 @@ ggplot(defender_counts_full, aes(x = count, y = final_score)) +
 
 ```
 
+# Offense
 
 ```{r, echo=FALSE}
 
@@ -625,7 +639,7 @@ athleticism_df <- data.frame(name = names(athleticism_data), list_value = unlist
 merged_df <- merge(epa_df, athleticism_df, by = "name")
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align="center"}
 ggplot(merged_df, aes(x = list_value.y, y = list_value.x)) +
   geom_point() + 
   geom_smooth(method = "lm", col = "blue") + 
@@ -635,116 +649,9 @@ ggplot(merged_df, aes(x = list_value.y, y = list_value.x)) +
 
 ```
 
+We used this plot to compare athleticism scores and average offensive expected points added by players on plays where they either recorded a reception,  scrambled, or recorded a carry. Expected points is the number of points a team is expected to score given the game state which includes factors like time, position, opponent, and more. Expected points Added is the differential between a teams expected points before and after a given play.  We averaged all plays by a player to get average offensive expected points added and then regressed it against the player athleticism. The confidence interval has a positive slope, which means there is significant difference for average offensive expected points added based on athleticism scores. 
 
 
-
-
-```{r, echo=FALSE}
-#This is the code for the initial plot that animates it
-library(farver)
-library(teamcolors)
-
-team_name_mapping <- list(
-  ARI = "Arizona Cardinals", ATL = "Atlanta Falcons", BAL = "Baltimore Ravens",
-  BUF = "Buffalo Bills", CAR = "Carolina Panthers", CHI = "Chicago Bears",
-  CIN = "Cincinnati Bengals", CLE = "Cleveland Browns", DAL = "Dallas Cowboys",
-  DEN = "Denver Broncos", DET = "Detroit Lions", GB  = "Green Bay Packers",
-  HOU = "Houston Texans", IND = "Indianapolis Colts", JAX = "Jacksonville Jaguars",
-  KC  = "Kansas City Chiefs", LAC = "Los Angeles Chargers", LAR = "Los Angeles Rams",
-  LV  = "Las Vegas Raiders", MIA = "Miami Dolphins", MIN = "Minnesota Vikings",
-  NE  = "New England Patriots", NO  = "New Orleans Saints", NYG = "New York Giants",
-  NYJ = "New York Jets", PHI = "Philadelphia Eagles", PIT = "Pittsburgh Steelers",
-  SEA = "Seattle Seahawks", SF  = "San Francisco 49ers", TB  = "Tampa Bay Buccaneers",
-  TEN = "Tennessee Titans", WAS = "Washington Commanders")
-
-hex_to_rgb <- function(hex) {
-  rgb <- col2rgb(hex) / 255
-  return(as.numeric(rgb))
-}
-
-lab_distance <- function(color1, color2) {
-  rgb1 <- as.numeric(col2rgb(color1))
-  rgb2 <- as.numeric(col2rgb(color2))
-
-  lab1 <- farver::convert_colour(matrix(rgb1, nrow = 1), from = "rgb", to = "lab")
-  lab2 <- farver::convert_colour(matrix(rgb2, nrow = 1), from = "rgb", to = "lab")
-
-  return(sqrt(sum((lab1 - lab2) ^ 2)))
-}
-
-nfl_teams <- subset(teamcolors, league == "nfl")
-nfl_team_colors <- setNames(nfl_teams$primary, nfl_teams$name)
-nfl_team_secondary_colors <- setNames(nfl_teams$secondary, nfl_teams$name)
-
-plot_play_movement <- function(game_id, play_id, data) {
-  play_data <- subset(data, gameId == game_id & playId == play_id)
-
-  teams <- unique(play_data$club[play_data$displayName != "football"])
-
-  full_team_names <- sapply(teams, function(code) team_name_mapping[[code]])
-  team_colors <- nfl_team_colors[full_team_names]
-  
-  for (i in 1:(length(team_colors) - 1)) {
-    for (j in (i + 1):length(team_colors)) {
-      if (lab_distance(team_colors[i], team_colors[j]) < 40) {
-        team_name <- names(team_colors)[i]
-        team_colors[i] <- nfl_team_secondary_colors[team_name]
-      }
-    }
-  }
-  
-  football_color <- "brown"
-  
-  frame_ids <- sort(unique(play_data$frameId))
-  
-  for (frame in frame_ids) {
-    frame_data <- subset(play_data, frameId <= frame)
-
-    plot.new()
-    plot.window(xlim = c(0, 140), ylim = c(0, 53.3))
-
-    rect(0, 0, 120, 53.3, border = "darkgreen", lwd = 2)
-    rect(0, 0, 10, 53.3, border = "black", lwd = 2)
-    rect(110, 0, 120, 53.3, border = "black", lwd = 2)
-
-    yard_labels <- c(10, 20, 30, 40, 50, 40, 30, 20, 10)
-    yard_positions <- seq(20, 100, by = 10)
-
-    for (i in seq_along(yard_positions)) {
-      yard <- yard_positions[i]
-      abline(v = yard, col = "lightgray", lty = "dashed")
-      text(x = yard, y = 1.7, labels = yard_labels[i], col = "darkgray", cex = 1.3, font = 2)
-      text(x = yard, y = 51.6, labels = yard_labels[i], col = "darkgray", cex = 1.3, font = 2)
-    }
-
-    title(main = paste("Play", play_id, "from", full_team_names[1], 
-                       "vs.", full_team_names[2]))
-
-    for (player in unique(frame_data$displayName)) {
-      player_data <- subset(frame_data, displayName == player)
-      if (player == "football") {
-        player_color <- football_color
-      } else {
-        player_team <- unique(player_data$club)
-        full_team_name <- team_name_mapping[[player_team]]
-        player_color <- team_colors[full_team_name]
-      }
-      lines(player_data$x, player_data$y, col = player_color, lwd = 2)
-      points(player_data$x[nrow(player_data)], player_data$y[nrow(player_data)], 
-             col = player_color, pch = 16)
-    }
-
-    legend_labels <- c(teams, "Football")
-    legend_colors <- c(team_colors, football_color)
-    legend(x = 122, y = 53.3, legend = legend_labels, col = legend_colors, lwd = 2, 
-           bg = "white", xpd = TRUE, bty = "n", cex = 1, text.col = "black")
-
-    Sys.sleep(0.1)
-  }
-}
-
-#plot_play_movement(2022101603, 346, data)
-```
 
 
 
